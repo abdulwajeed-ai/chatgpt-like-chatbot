@@ -31,8 +31,12 @@ const initSocketServer = (httpServer) => {
     socket.on("ai-message", async (messagePayload)=>{
         console.log(messagePayload);
         const response = await aiService.generateResponse(messagePayload.content);
+        socket.emit("ai-response", {
+          content: response,
+          chat: messagePayload.chat
+        })
     })
-
+ 
     socket.on("disconnect", (socket) => {
       console.log("user disconnected");
     });
