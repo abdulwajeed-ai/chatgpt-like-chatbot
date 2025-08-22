@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const userModel = require("../models/authModel");
+const aiService = require("../services/aiService");
 
 const initSocketServer = (httpServer) => {
   const io = new Server(httpServer, {});
@@ -26,9 +27,15 @@ const initSocketServer = (httpServer) => {
   io.on("connection", (socket) => {
     console.log("User connected", socket.user);
     console.log("New socket connection:", socket.id);
-    socket.on("disconnect",(socket)=>{
-      console.log("user disconnected")
+
+    socket.on("ai-message", async (messagePayload)=>{
+        console.log(messagePayload);
+        const response = await aiService.generateResponse(messagePayload.content);
     })
+
+    socket.on("disconnect", (socket) => {
+      console.log("user disconnected");
+    });
   });
 };
 
