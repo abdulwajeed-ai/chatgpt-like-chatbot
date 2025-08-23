@@ -32,7 +32,7 @@ const signup = async (req, res) => {
   const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)
 
 // token storing into the browser cookie
-  res.cookie("token", token);
+  res.cookie("Token", token);
 
 //   finally response
   res.status(201).json({
@@ -58,7 +58,7 @@ const login = async (req, res) => {
     }
     const token = jwt.sign({id: user._id}, process.env.JWT_SECRET)
 
-    res.cookie("token", token)
+    res.cookie("Token", token)
 
     res.status(200).json({message: "User Loggedin Successfully", user:{
         email: user.email,
