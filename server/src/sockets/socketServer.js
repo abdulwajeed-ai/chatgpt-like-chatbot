@@ -6,23 +6,24 @@ require("dotenv").config();
 
 const userModel = require("../models/authModel");
 const aiService = require("../services/aiService");
+const messageModel = require("../models/messageModel")
 
 const initSocketServer = (httpServer) => {
   const io = new Server(httpServer, {});
 
   io.use(async (socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
-    if (!cookies.Token) {
-      next(new Error("Authentication error: no Token provided"));
+    if (!cookies.token) {
+      next(new Error("Authentication error: no token provided"));
     }
 
     try {
-      const decoded = jwt.verify(cookies.Token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(cookies.token, process.env.JWT_SECRET);
       const user = await userModel.findById(decoded.id);
       socket.user = user;
       next();
     } catch (err) {
-      next(new Error("Authentication error: Invalid Token"));
+      next(new Error("Authentication error: Invalid token"));
     }
   });
   io.on("connection", (socket) => {
