@@ -6,7 +6,7 @@ require("dotenv").config();
 
 const userModel = require("../models/authModel");
 const aiService = require("../services/aiService");
-const messageModel = require("../models/messageModel")
+const messageModel = require("../models/messageModel");
 
 const initSocketServer = (httpServer) => {
   const io = new Server(httpServer, {});
@@ -27,18 +27,37 @@ const initSocketServer = (httpServer) => {
     }
   });
   io.on("connection", (socket) => {
-    console.log("User connected", socket.user);
-    console.log("New socket connection:", socket.id);
-
     socket.on("ai-message", async (messagePayload) => {
       console.log("Incoming message:", messagePayload);
 
-      const response = await aiService.generateResponse(messagePayload.content);
+      await messageModel.create({
+        chat: messagePayload.chat,
+        user: socket.user._id,
+        content: messagePayload.content,
+        role: "user"
+      })
+      const chatHistory = await messageModel.find({ chat: messagePayload.chat })
+      const response = await aiService.generateResponse(chatHistory.map(item => {
+        return {
+          role: item.role,
+          parts: [{ text: item.content }]
+        }
+      }));
 
+      await messageModel.create({
+        chat: messagePayload.chat,
+        user: socket.user._id,
+        content: response,
+        role: "model"
+      })
+ 
       socket.emit("ai-response", {
         content: response,
         chat: messagePayload.chat,
       });
+    });
+    socket.on("disconnect", () => {
+      console.log("user disconnected!");
     });
   });
 };
